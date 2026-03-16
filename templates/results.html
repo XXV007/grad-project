@@ -1,0 +1,140 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Detection Results - Deepfake Detector</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+</head>
+<body>
+    <!-- Navigation -->
+    <nav class="navbar navbar-expand-lg navbar-dark bg-primary">
+        <div class="container">
+            <a class="navbar-brand" href="/">
+                <i class="fas fa-shield-alt"></i> Deepfake Detector
+            </a>
+            <div class="collapse navbar-collapse">
+                <ul class="navbar-nav ms-auto">
+                    <li class="nav-item">
+                        <a class="nav-link" href="/">Home</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="/about">About</a>
+                    </li>
+                </ul>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Results Section -->
+    <div class="container my-5">
+        <div class="row justify-content-center">
+            <div class="col-lg-10">
+                <div class="card shadow-lg border-0">
+                    <div class="card-body p-5">
+                        <h2 class="text-center mb-4">
+                            <i class="fas fa-chart-line"></i> Detection Results
+                        </h2>
+                        
+                        <!-- Prediction Result -->
+                        <div class="text-center mb-5">
+                            {% if result.prediction == 'FAKE' %}
+                            <div class="result-badge fake-badge">
+                                <i class="fas fa-exclamation-triangle fa-3x mb-3"></i>
+                                <h1 class="display-4 fw-bold">DEEPFAKE DETECTED</h1>
+                                <p class="lead">This video appears to be manipulated</p>
+                            </div>
+                            {% else %}
+                            <div class="result-badge real-badge">
+                                <i class="fas fa-check-circle fa-3x mb-3"></i>
+                                <h1 class="display-4 fw-bold">AUTHENTIC</h1>
+                                <p class="lead">This video appears to be genuine</p>
+                            </div>
+                            {% endif %}
+                            
+                            <div class="confidence-meter mt-4">
+                                <h5>Confidence Score</h5>
+                                <div class="progress" style="height: 40px;">
+                                    <div class="progress-bar {% if result.confidence > 0.8 %}bg-success{% elif result.confidence > 0.5 %}bg-warning{% else %}bg-danger{% endif %}" 
+                                         role="progressbar" 
+                                         style="width: {{ result.confidence * 100 }}%">
+                                        {{ "%.2f"|format(result.confidence * 100) }}%
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <!-- Analysis Details -->
+                        <div class="row mb-4">
+                            <div class="col-md-4">
+                                <div class="stat-card">
+                                    <i class="fas fa-film fa-2x text-primary mb-2"></i>
+                                    <h6>Frames Analyzed</h6>
+                                    <h3>{{ result.frames_analyzed }}</h3>
+                                </div>
+                            </div>
+                            <div class="col-md-4">
+                                <div class="stat-card">
+                                    <i class="fas fa-user fa-2x text-success mb-2"></i>
+                                    <h6>Faces Detected</h6>
+                                    <h3>{{ result.faces_detected }}</h3>
+                                </div>
+                            </div>
+                            <div class="col-md-4">
+                                <div class="stat-card">
+                                    <i class="fas fa-clock fa-2x text-info mb-2"></i>
+                                    <h6>Job ID</h6>
+                                    <p class="text-muted small">{{ result.job_id[:8] }}...</p>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <!-- Visualizations -->
+                        <h4 class="mb-3"><i class="fas fa-chart-bar"></i> Explainability Visualizations</h4>
+                        
+                        <div class="row">
+                            <div class="col-md-6 mb-4">
+                                <div class="visualization-card">
+                                    <h5>Spatial Attention Heatmap</h5>
+                                    <p class="text-muted small">Regions influencing the detection decision</p>
+                                    <img src="{{ result.heatmap_url }}" alt="Heatmap" class="img-fluid rounded">
+                                </div>
+                            </div>
+                            <div class="col-md-6 mb-4">
+                                <div class="visualization-card">
+                                    <h5>Temporal Analysis</h5>
+                                    <p class="text-muted small">Frame-by-frame anomaly detection over time</p>
+                                    <img src="{{ result.temporal_plot_url }}" alt="Temporal Plot" class="img-fluid rounded">
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <!-- Actions -->
+                        <div class="text-center mt-4">
+                            <a href="/" class="btn btn-primary btn-lg">
+                                <i class="fas fa-upload"></i> Analyze Another Video
+                            </a>
+                            <button class="btn btn-outline-secondary btn-lg" onclick="window.print()">
+                                <i class="fas fa-download"></i> Download Report
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Footer -->
+    <footer class="bg-dark text-white py-4 mt-5">
+        <div class="container text-center">
+            <p class="mb-0 text-muted">
+                CPSC 589 | California State University Fullerton
+            </p>
+        </div>
+    </footer>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>
