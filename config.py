@@ -23,6 +23,7 @@ class Config:
     SPATIAL_MODEL_PATH = os.path.join(MODEL_FOLDER, 'spatial_model.pth')
     TEMPORAL_MODEL_PATH = os.path.join(MODEL_FOLDER, 'temporal_model.pth')
     FUSION_MODEL_PATH = os.path.join(MODEL_FOLDER, 'fusion_model.pth')
+    USE_PRETRAINED_BACKBONE = False
     
     # Video Processing Settings
     FRAME_EXTRACTION_FPS = 10  # Extract 10 frames per second

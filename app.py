@@ -97,6 +97,7 @@ def create_app(config_name='development'):
     
     # Store detection results temporarily
     detection_results = {}
+    detector_instance = None
     
     def allowed_file(filename):
         """Check if file extension is allowed"""
@@ -202,8 +203,12 @@ def create_app(config_name='development'):
                     'error': 'No faces detected in video or video processing failed'
                 }), 400
             
-            # Step 2: Load detection model
-            detector = SimpleMultimodalDetector(app.config, device)
+            # Step 2: Load detection model once and reuse it across requests.
+            nonlocal detector_instance
+            if detector_instance is None:
+                logger.info("Initializing detector for the first analysis request")
+                detector_instance = SimpleMultimodalDetector(app.config, device)
+            detector = detector_instance
             
             # Step 3: Run detection
             prediction, confidence, spatial_features, temporal_features = detector.predict(frames)

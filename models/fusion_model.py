@@ -19,7 +19,8 @@ class MultimodalDetector(nn.Module):
     
     def __init__(self, spatial_backbone='efficientnet_b0', temporal_type='lstm',
                  spatial_feature_dim=1280, temporal_hidden_dim=512,
-                 num_classes=2, fusion_type='concat', dropout=0.3):
+                 num_classes=2, fusion_type='concat', dropout=0.3,
+                 pretrained_backbone=False):
         """
         Initialize multimodal detector
         
@@ -39,7 +40,7 @@ class MultimodalDetector(nn.Module):
         # Spatial feature extractor
         self.spatial_model = SpatialFeatureExtractor(
             backbone=spatial_backbone,
-            pretrained=True,
+            pretrained=pretrained_backbone,
             num_classes=num_classes
         )
         
@@ -208,12 +209,14 @@ class SimpleMultimodalDetector:
         """
         self.config = config
         self.device = device
+        self.use_pretrained_backbone = config.get('USE_PRETRAINED_BACKBONE', False)
         
         # Initialize model
         self.model = MultimodalDetector(
             spatial_backbone='efficientnet_b0',
             temporal_type='lstm',
-            fusion_type='concat'
+            fusion_type='concat',
+            pretrained_backbone=self.use_pretrained_backbone
         ).to(device)
         
         # Load pretrained weights if available
