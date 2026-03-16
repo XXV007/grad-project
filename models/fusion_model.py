@@ -222,17 +222,17 @@ class SimpleMultimodalDetector:
     def load_weights(self):
         """Load pretrained model weights"""
         try:
-            if hasattr(self.config, 'FUSION_MODEL_PATH'):
-                import os
-                if os.path.exists(self.config.FUSION_MODEL_PATH):
-                    checkpoint = torch.load(
-                        self.config.FUSION_MODEL_PATH,
-                        map_location=self.device
-                    )
-                    self.model.load_state_dict(checkpoint['model_state_dict'])
-                    print(f"Loaded model weights from {self.config.FUSION_MODEL_PATH}")
-                else:
-                    print("No pretrained weights found. Using randomly initialized model.")
+            import os
+            fusion_model_path = self.config.get('FUSION_MODEL_PATH', '')
+            if fusion_model_path and os.path.exists(fusion_model_path):
+                checkpoint = torch.load(
+                    fusion_model_path,
+                    map_location=self.device
+                )
+                self.model.load_state_dict(checkpoint['model_state_dict'])
+                print(f"Loaded model weights from {fusion_model_path}")
+            else:
+                print("No pretrained weights found. Using randomly initialized model.")
         except Exception as e:
             print(f"Warning: Could not load weights: {e}")
     

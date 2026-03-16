@@ -111,7 +111,7 @@ class ExplainabilityModule:
         self.model = model
         self.device = device
         # Get static folder and create results directory
-        static_folder = os.path.dirname(config.UPLOAD_FOLDER)
+        static_folder = os.path.dirname(config.get('UPLOAD_FOLDER', os.path.join(os.path.dirname(os.path.dirname(__file__)), 'static', 'uploads')))
         self.output_dir = os.path.join(static_folder, 'results')
         os.makedirs(self.output_dir, exist_ok=True)
     

@@ -37,7 +37,10 @@ document.addEventListener('DOMContentLoaded', function() {
         }
     });
 
-    uploadArea.addEventListener('click', function() {
+    uploadArea.addEventListener('click', function(e) {
+        // The label already handles opening the file dialog natively via its `for` attribute.
+        // Prevent a second dialog from opening when the click bubbles up from the label.
+        if (e.target.tagName === 'LABEL' || e.target.closest('label') || e.target.tagName === 'INPUT') return;
         videoFile.click();
     });
 

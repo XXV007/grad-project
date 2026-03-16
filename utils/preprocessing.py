@@ -28,10 +28,10 @@ class VideoPreprocessor:
             config: Configuration object containing processing parameters
         """
         self.config = config
-        self.frame_size = config.FRAME_SIZE if hasattr(config, 'FRAME_SIZE') else (224, 224)
-        self.fps = config.FRAME_EXTRACTION_FPS if hasattr(config, 'FRAME_EXTRACTION_FPS') else 10
-        self.max_frames = config.MAX_FRAMES if hasattr(config, 'MAX_FRAMES') else 300
-        self.sequence_length = config.SEQUENCE_LENGTH if hasattr(config, 'SEQUENCE_LENGTH') else 30
+        self.frame_size = config.get('FRAME_SIZE', (224, 224))
+        self.fps = config.get('FRAME_EXTRACTION_FPS', 10)
+        self.max_frames = config.get('MAX_FRAMES', 300)
+        self.sequence_length = config.get('SEQUENCE_LENGTH', 30)
         
         # Initialize face detector
         self.face_detector = self._init_face_detector()

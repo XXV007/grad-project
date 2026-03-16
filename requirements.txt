@@ -4,9 +4,9 @@ Flask-CORS==4.0.0
 Werkzeug==3.0.1
 
 # Deep Learning Frameworks
-torch==2.1.2
-torchvision==0.16.2
-tensorflow==2.15.0
+torch==2.6.0
+torchvision==0.25.0
+tensorflow==2.21.0
 
 # Computer Vision
 opencv-python==4.9.0.80
