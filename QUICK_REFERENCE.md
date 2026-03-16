@@ -120,7 +120,7 @@ USE_GPU = True
 
 ## ✅ Verification Checklist
 
-- [ ] Python 3.8+ installed
+- [ ] Python 3.13 environment ready
 - [ ] Dependencies installed
 - [ ] `test_system.py` passes
 - [ ] App runs on localhost:5000

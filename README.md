@@ -7,9 +7,9 @@
 
 [![Status](https://img.shields.io/badge/Status-Implementation%20Complete-brightgreen)]()
 [![Training](https://img.shields.io/badge/Training-In%20Progress-yellow)]()
-[![Python](https://img.shields.io/badge/Python-3.8%2B-blue)]()
-[![PyTorch](https://img.shields.io/badge/PyTorch-2.1.2-red)]()
-[![Flask](https://img.shields.io/badge/Flask-3.0-black)]()
+[![Python](https://img.shields.io/badge/Python-3.13%20tested-blue)]()
+[![PyTorch](https://img.shields.io/badge/PyTorch-2.10-red)]()
+[![Flask](https://img.shields.io/badge/Flask-3.1-black)]()
 
 ## 📋 Project Status
 
@@ -81,7 +81,7 @@ Input Video → Frame Extraction → Face Detection/Alignment
 ## Installation
 
 ### Prerequisites
-- Python 3.8+
+- Python 3.13 recommended for the current Windows demo setup
 - CUDA-capable GPU (recommended)
 - 16GB+ RAM
 
@@ -103,6 +103,8 @@ venv\Scripts\activate  # Windows
 ```bash
 pip install -r requirements.txt
 ```
+
+The checked-in requirements file is aligned to the currently working Flask demo path on Windows and Python 3.13. It focuses on the packages needed to run the app, upload a video, and generate the current explainability outputs.
 
 4. Download pretrained models (if available):
 ```bash

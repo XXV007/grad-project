@@ -1,7 +1,7 @@
 # Quick Start Guide
 
 ## Prerequisites
-- Python 3.8 or higher
+- Python 3.13 recommended for the current Windows demo setup
 - pip package manager
 - (Optional) CUDA-capable GPU for faster processing
 
@@ -29,9 +29,9 @@ pip install --upgrade pip
 pip install -r requirements.txt
 ```
 
-**Note**: Some packages may require additional setup:
-- **dlib**: Requires Visual Studio Build Tools
-- **torch**: Install with CUDA support if you have an NVIDIA GPU:
+**Note**: The checked-in requirements are aligned to the currently working demo environment on Windows with Python 3.13.
+
+If you want GPU-enabled PyTorch, install the CUDA build instead:
   ```powershell
   pip install torch torchvision --index-url https://download.pytorch.org/whl/cu118
   ```
@@ -116,6 +116,8 @@ python training\train_temporal.py --model_type lstm --epochs 50
 ```powershell
 pip install -r requirements.txt
 ```
+
+If you are using a different Python version than 3.13, some package versions may need to be adjusted.
 
 ### Issue: MediaPipe not working
 **Solution**: Fallback to Haar Cascade (automatic)
