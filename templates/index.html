@@ -68,6 +68,13 @@
                             <i class="fas fa-cloud-upload-alt text-primary"></i>
                             Upload Video for Analysis
                         </h2>
+
+                        <div id="modelStatus" class="alert alert-secondary" role="status">
+                            <i class="fas fa-circle-notch fa-spin"></i>
+                            Checking model readiness...
+                        </div>
+
+                        <div id="clientError" class="alert alert-danger" style="display: none;" role="alert"></div>
                         
                         <form id="uploadForm" enctype="multipart/form-data">
                             <div class="upload-area" id="uploadArea">

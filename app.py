@@ -98,6 +98,7 @@ def create_app(config_name='development'):
     # Store detection results temporarily
     detection_results = {}
     detector_instance = None
+    detector_ready = os.path.exists(app.config['FUSION_MODEL_PATH'])
     
     def allowed_file(filename):
         """Check if file extension is allowed"""
@@ -121,6 +122,7 @@ def create_app(config_name='development'):
             'status': 'healthy',
             'version': app.config['VERSION'],
             'device': str(device),
+            'detector_ready': detector_ready,
             'timestamp': datetime.utcnow().isoformat()
         })
     
@@ -182,6 +184,24 @@ def create_app(config_name='development'):
             from utils.preprocessing import VideoPreprocessor
             from models.fusion_model import SimpleMultimodalDetector
             from utils.explainability import ExplainabilityModule
+
+            # Initialize detector once and fail fast if trained weights are missing.
+            nonlocal detector_instance, detector_ready
+            if detector_instance is None:
+                logger.info("Initializing detector for the first analysis request")
+                detector_instance = SimpleMultimodalDetector(app.config, device)
+                detector_ready = detector_instance.has_trained_weights
+
+            detector = detector_instance
+            if not detector.has_trained_weights:
+                logger.error(
+                    "Analysis blocked: fusion weights file missing. "
+                    "Set FUSION_MODEL_PATH to a trained checkpoint before running inference."
+                )
+                return jsonify({
+                    'error': 'Model checkpoint not found. Detection is disabled to avoid unreliable results.',
+                    'details': f"Expected checkpoint: {app.config['FUSION_MODEL_PATH']}"
+                }), 503
             
             # Find video file
             video_files = [f for f in os.listdir(app.config['UPLOAD_FOLDER']) 
@@ -202,14 +222,7 @@ def create_app(config_name='development'):
                 return jsonify({
                     'error': 'No faces detected in video or video processing failed'
                 }), 400
-            
-            # Step 2: Load detection model once and reuse it across requests.
-            nonlocal detector_instance
-            if detector_instance is None:
-                logger.info("Initializing detector for the first analysis request")
-                detector_instance = SimpleMultimodalDetector(app.config, device)
-            detector = detector_instance
-            
+
             # Step 3: Run detection
             prediction, confidence, spatial_features, temporal_features = detector.predict(frames)
             
@@ -282,5 +295,6 @@ if __name__ == '__main__':
     app.run(
         host='0.0.0.0',
         port=port,
-        debug=True
+        debug=False,
+        use_reloader=False
     )

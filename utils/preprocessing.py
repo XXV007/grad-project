@@ -180,16 +180,13 @@ class VideoPreprocessor:
         face_frames = []
         faces_detected = 0
         
-        try:
-            import mediapipe as mp
-            use_mediapipe = True
-        except:
-            use_mediapipe = False
+        # Check which face detector is in use
+        is_mediapipe = 'mediapipe' in str(type(self.face_detector)).lower()
         
         for frame in frames:
             face_crop = None
             
-            if use_mediapipe:
+            if is_mediapipe:
                 # MediaPipe face detection
                 results = self.face_detector.process(frame)
                 
@@ -197,7 +194,6 @@ class VideoPreprocessor:
                     detection = results.detections[0]  # Use first detected face
                     bboxC = detection.location_data.relative_bounding_box
                     h, w, _ = frame.shape
-                    
                     # Convert relative coordinates to absolute
                     x = int(bboxC.xmin * w)
                     y = int(bboxC.ymin * h)
@@ -234,13 +230,16 @@ class VideoPreprocessor:
                     face_crop = frame[y:y+h, x:x+w]
                     faces_detected += 1
             
-            # If face detected, add to list; otherwise use full frame
+            # If face detected, add to list
             if face_crop is not None and face_crop.size > 0:
                 face_frames.append(face_crop)
-            else:
-                face_frames.append(frame)
         
-        return face_frames if len(face_frames) > 0 else None, faces_detected
+        # If no faces were ever detected, use the original frames
+        if not face_frames:
+            logger.warning("No faces detected in any frame. Using full frames for processing.")
+            return frames, 0
+        
+        return face_frames, faces_detected
     
     def _preprocess_frames(self, frames):
         """

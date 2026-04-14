@@ -11,7 +11,12 @@ document.addEventListener('DOMContentLoaded', function() {
     const progressSection = document.getElementById('progressSection');
     const progressBar = document.getElementById('progressBar');
     const statusText = document.getElementById('statusText');
+    const modelStatus = document.getElementById('modelStatus');
+    const clientError = document.getElementById('clientError');
     let selectedFile = null;
+    let modelReady = false;
+
+    checkModelReadiness();
 
     // Drag and drop functionality
     uploadArea.addEventListener('dragover', function(e) {
@@ -53,6 +58,8 @@ document.addEventListener('DOMContentLoaded', function() {
 
     // Handle file selection
     function handleFileSelect(file) {
+        hideError();
+
         // Validate by extension first because browser MIME values vary by OS/browser.
         const extension = file.name.includes('.')
             ? file.name.split('.').pop().toLowerCase()
@@ -60,7 +67,7 @@ document.addEventListener('DOMContentLoaded', function() {
         const validExtensions = ['mp4', 'avi', 'mov', 'mkv', 'webm'];
 
         if (!validExtensions.includes(extension)) {
-            alert('Please select a valid video file (MP4, AVI, MOV, MKV, or WEBM)');
+            showError('Please select a valid video file (MP4, AVI, MOV, MKV, or WEBM).');
             return;
         }
 
@@ -74,14 +81,14 @@ document.addEventListener('DOMContentLoaded', function() {
 
         // If browser provides MIME, ensure it looks like a video type we support.
         if (file.type && !validTypes.includes(file.type)) {
-            alert('Unsupported video format. Please upload MP4, AVI, MOV, MKV, or WEBM.');
+            showError('Unsupported video format. Please upload MP4, AVI, MOV, MKV, or WEBM.');
             return;
         }
 
         // Validate file size (max 500MB)
         const maxSize = 500 * 1024 * 1024; // 500MB in bytes
         if (file.size > maxSize) {
-            alert('File size exceeds 500MB. Please select a smaller file.');
+            showError('File size exceeds 500MB. Please select a smaller file.');
             return;
         }
 
@@ -89,7 +96,7 @@ document.addEventListener('DOMContentLoaded', function() {
         fileName.textContent = file.name;
         fileSize.textContent = formatFileSize(file.size);
         fileInfo.style.display = 'block';
-        analyzeBtn.disabled = false;
+        analyzeBtn.disabled = !modelReady;
         selectedFile = file;
     }
 
@@ -105,9 +112,15 @@ document.addEventListener('DOMContentLoaded', function() {
     // Form submission
     uploadForm.addEventListener('submit', async function(e) {
         e.preventDefault();
+        hideError();
 
         if (!selectedFile) {
-            alert('Please select a video file first');
+            showError('Please select a video file first.');
+            return;
+        }
+
+        if (!modelReady) {
+            showError('Model is not ready. Please load a trained checkpoint before running detection.');
             return;
         }
 
@@ -159,14 +172,55 @@ document.addEventListener('DOMContentLoaded', function() {
 
         } catch (error) {
             console.error('Error:', error);
-            alert('Error: ' + error.message);
+            showError('Error: ' + error.message);
             
             // Reset UI
-            analyzeBtn.disabled = false;
+            analyzeBtn.disabled = !selectedFile || !modelReady;
             progressSection.style.display = 'none';
             updateProgress(0, '');
         }
     });
+
+    async function checkModelReadiness() {
+        try {
+            const response = await fetch('/health');
+            if (!response.ok) {
+                throw new Error('Unable to reach health endpoint');
+            }
+
+            const health = await response.json();
+            modelReady = Boolean(health.detector_ready);
+            updateModelStatus(modelReady);
+        } catch (error) {
+            modelReady = false;
+            updateModelStatus(false, 'Unable to verify model readiness. Ensure the server is running.');
+        }
+
+        analyzeBtn.disabled = !selectedFile || !modelReady;
+    }
+
+    function updateModelStatus(ready, customMessage = null) {
+        if (ready) {
+            modelStatus.className = 'alert alert-success';
+            modelStatus.innerHTML = '<i class="fas fa-check-circle"></i> Model is ready for deepfake analysis.';
+            return;
+        }
+
+        modelStatus.className = 'alert alert-warning';
+        modelStatus.innerHTML = customMessage
+            ? `<i class="fas fa-exclamation-triangle"></i> ${customMessage}`
+            : '<i class="fas fa-exclamation-triangle"></i> Model checkpoint not found. Add trained weights to enable analysis.';
+    }
+
+    function showError(message) {
+        clientError.textContent = message;
+        clientError.style.display = 'block';
+    }
+
+    function hideError() {
+        clientError.style.display = 'none';
+        clientError.textContent = '';
+    }
 
     // Update progress bar
     function updateProgress(percent, status) {

@@ -204,12 +204,13 @@ class SimpleMultimodalDetector:
         Initialize detector
         
         Args:
-            config: Configuration object
+            config: Configuration object (dict, Flask Config, or Config class)
             device: Torch device
         """
         self.config = config
         self.device = device
-        self.use_pretrained_backbone = config.get('USE_PRETRAINED_BACKBONE', False)
+        self.use_pretrained_backbone = self._get_config_value('USE_PRETRAINED_BACKBONE', False)
+        self.has_trained_weights = False
         
         # Initialize model
         self.model = MultimodalDetector(
@@ -222,22 +223,48 @@ class SimpleMultimodalDetector:
         # Load pretrained weights if available
         self.load_weights()
     
+    def _get_config_value(self, key, default=None):
+        """Safely get config value from dict, Flask Config, or Config class"""
+        try:
+            # Try dict access
+            if isinstance(self.config, dict):
+                return self.config.get(key, default)
+            # Try Flask Config object (supports bracket notation)
+            try:
+                return self.config[key]
+            except (KeyError, TypeError):
+                pass
+            # Try Config class attribute
+            if hasattr(self.config, key):
+                return getattr(self.config, key)
+            return default
+        except Exception:
+            return default
+    
     def load_weights(self):
         """Load pretrained model weights"""
         try:
             import os
-            fusion_model_path = self.config.get('FUSION_MODEL_PATH', '')
+            fusion_model_path = self._get_config_value('FUSION_MODEL_PATH', '')
+            
             if fusion_model_path and os.path.exists(fusion_model_path):
                 checkpoint = torch.load(
                     fusion_model_path,
                     map_location=self.device
                 )
-                self.model.load_state_dict(checkpoint['model_state_dict'])
+                state_dict = checkpoint.get('model_state_dict', checkpoint)
+                self.model.load_state_dict(state_dict, strict=False)
+                self.has_trained_weights = True
                 print(f"Loaded model weights from {fusion_model_path}")
             else:
-                print("No pretrained weights found. Using randomly initialized model.")
+                self.has_trained_weights = False
+                if not fusion_model_path:
+                    print("FUSION_MODEL_PATH not configured")
+                else:
+                    print(f"Model checkpoint not found at {fusion_model_path}")
         except Exception as e:
-            print(f"Warning: Could not load weights: {e}")
+            self.has_trained_weights = False
+            print(f"Error loading weights: {e}")
     
     def predict(self, frames):
         """
