@@ -64,6 +64,10 @@ class Config:
     LOG_FOLDER = os.path.join(os.path.dirname(__file__), 'logs')
     LOG_LEVEL = 'INFO'
     
+    # BitMind API Settings
+    BITMIND_API_KEY = os.environ.get('BITMIND_API_KEY') or 'bitmind-ca6693f0-38f1-11f1-ac47-015f92f4a374:529e01d0'
+    BITMIND_BASE_URL = 'https://api.bitmind.ai'
+    
     # Explainability Settings
     GRAD_CAM_LAYER = 'layer4'  # For ResNet-based models
     GENERATE_HEATMAPS = True

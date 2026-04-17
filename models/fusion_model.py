@@ -95,6 +95,34 @@ class MultimodalDetector(nn.Module):
                 nn.Dropout(dropout),
                 nn.Linear(512, num_classes)
             )
+        
+        # Initialize fusion layer weights with Kaiming initialization
+        self._initialize_fusion_layer()
+    
+    def _initialize_fusion_layer(self):
+        """Initialize fusion layer and projection layers with proper weight initialization"""
+        # Initialize fusion layer
+        for module in self.fusion_layer.modules():
+            if isinstance(module, nn.Linear):
+                nn.init.kaiming_normal_(module.weight, mode='fan_in', nonlinearity='relu')
+                if module.bias is not None:
+                    nn.init.constant_(module.bias, 0)
+        
+        # Initialize projection layers for 'add' fusion type
+        if self.fusion_type == 'add':
+            for module in [self.spatial_proj, self.temporal_proj]:
+                if isinstance(module, nn.Linear):
+                    nn.init.kaiming_normal_(module.weight, mode='fan_in', nonlinearity='relu')
+                    if module.bias is not None:
+                        nn.init.constant_(module.bias, 0)
+        
+        # Initialize attention layers for 'attention' fusion type
+        if self.fusion_type == 'attention':
+            for module in [self.spatial_attention, self.temporal_attention]:
+                if isinstance(module, nn.Linear):
+                    nn.init.kaiming_normal_(module.weight, mode='fan_in', nonlinearity='sigmoid')
+                    if module.bias is not None:
+                        nn.init.constant_(module.bias, 0)
     
     def forward(self, frames):
         """

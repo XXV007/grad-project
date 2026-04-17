@@ -98,7 +98,7 @@ def create_app(config_name='development'):
     # Store detection results temporarily
     detection_results = {}
     detector_instance = None
-    detector_ready = os.path.exists(app.config['FUSION_MODEL_PATH'])
+    detector_ready = True  # BitMind API is ready (will verify on first use)
     
     def allowed_file(filename):
         """Check if file extension is allowed"""
@@ -118,11 +118,24 @@ def create_app(config_name='development'):
     @app.route('/health')
     def health():
         """Health check endpoint"""
+        # Check BitMind API availability
+        try:
+            from utils.bitmind_detector import BitMindDetector
+            bitmind_api_key = app.config.get('BITMIND_API_KEY')
+            bitmind_healthy = False
+            if bitmind_api_key:
+                detector = BitMindDetector(bitmind_api_key)
+                bitmind_healthy = detector.is_healthy()
+        except Exception as e:
+            logger.warning(f"BitMind health check failed: {e}")
+            bitmind_healthy = False
+        
         return jsonify({
-            'status': 'healthy',
+            'status': 'healthy' if bitmind_healthy else 'degraded',
             'version': app.config['VERSION'],
-            'device': str(device),
-            'detector_ready': detector_ready,
+            'detector_ready': bitmind_healthy,  # For backward compatibility
+            'detection_source': 'BitMind API',
+            'bitmind_api_healthy': bitmind_healthy,
             'timestamp': datetime.utcnow().isoformat()
         })
     
@@ -177,77 +190,67 @@ def create_app(config_name='development'):
     @app.route('/analyze/<job_id>', methods=['GET'])
     def analyze_video(job_id):
         """
-        Analyze uploaded video and return detection results
+        Analyze uploaded video and return detection results using BitMind API
         """
         try:
-            # Import detection modules (lazy loading)
-            from utils.preprocessing import VideoPreprocessor
-            from models.fusion_model import SimpleMultimodalDetector
-            from utils.explainability import ExplainabilityModule
-
-            # Initialize detector once and fail fast if trained weights are missing.
-            nonlocal detector_instance, detector_ready
+            # Import BitMind detector
+            from utils.bitmind_detector import BitMindDetector
+            
+            # Initialize BitMind detector (lazy loading)
+            nonlocal detector_instance
             if detector_instance is None:
-                logger.info("Initializing detector for the first analysis request")
-                detector_instance = SimpleMultimodalDetector(app.config, device)
-                detector_ready = detector_instance.has_trained_weights
-
-            detector = detector_instance
-            if not detector.has_trained_weights:
-                logger.error(
-                    "Analysis blocked: fusion weights file missing. "
-                    "Set FUSION_MODEL_PATH to a trained checkpoint before running inference."
-                )
-                return jsonify({
-                    'error': 'Model checkpoint not found. Detection is disabled to avoid unreliable results.',
-                    'details': f"Expected checkpoint: {app.config['FUSION_MODEL_PATH']}"
-                }), 503
+                logger.info("Initializing BitMind API detector")
+                bitmind_api_key = os.environ.get('BITMIND_API_KEY') or app.config.get('BITMIND_API_KEY')
+                if not bitmind_api_key:
+                    logger.error("BitMind API key not configured")
+                    return jsonify({
+                        'error': 'BitMind API key not configured',
+                        'hint': 'Set BITMIND_API_KEY environment variable'
+                    }), 503
+                detector_instance = BitMindDetector(bitmind_api_key)
+                logger.info("BitMind detector initialized successfully")
             
             # Find video file
             video_files = [f for f in os.listdir(app.config['UPLOAD_FOLDER']) 
                           if f.startswith(job_id)]
             
             if not video_files:
+                logger.error(f"Video file not found for job_id: {job_id}")
                 return jsonify({'error': 'Video not found'}), 404
             
             video_path = os.path.join(app.config['UPLOAD_FOLDER'], video_files[0])
             
-            logger.info(f"Analyzing video: {job_id}")
+            logger.info(f"Analyzing video with BitMind API: {job_id}")
             
-            # Step 1: Preprocess video
-            preprocessor = VideoPreprocessor(app.config)
-            frames, faces_detected = preprocessor.process_video(video_path)
+            # Call BitMind API for detection
+            bitmind_result = detector_instance.detect_video(video_path, debug=False)
             
-            if frames is None or len(frames) == 0:
+            # Handle API errors
+            if bitmind_result.get('error'):
+                logger.error(f"BitMind API error: {bitmind_result['error']}")
                 return jsonify({
-                    'error': 'No faces detected in video or video processing failed'
+                    'error': bitmind_result['error'],
+                    'job_id': job_id
                 }), 400
-
-            # Step 3: Run detection
-            prediction, confidence, spatial_features, temporal_features = detector.predict(frames)
             
-            # Step 4: Generate explainability visualizations
-            explainer = ExplainabilityModule(app.config, detector.model, device)
-            heatmap_path, temporal_plot_path = explainer.generate_visualizations(
-                frames, spatial_features, temporal_features, job_id
-            )
+            # Prepare results
+            is_ai = bitmind_result.get('is_ai', False)
+            confidence = bitmind_result.get('confidence', 0)
             
-            # Step 5: Prepare results
             result = {
                 'job_id': job_id,
-                'prediction': 'FAKE' if prediction == 1 else 'REAL',
+                'prediction': 'FAKE' if is_ai else 'REAL',
                 'confidence': float(confidence),
-                'frames_analyzed': len(frames),
-                'faces_detected': faces_detected,
-                'heatmap_url': url_for('static', filename=f'results/{job_id}_heatmap.png'),
-                'temporal_plot_url': url_for('static', filename=f'results/{job_id}_temporal.png'),
+                'detection_source': 'BitMind API',
+                'is_ai_generated': is_ai,
+                'similarity_score': bitmind_result.get('similarity', 0),
                 'timestamp': datetime.utcnow().isoformat()
             }
             
             # Store result
             detection_results[job_id] = result
             
-            logger.info(f"Analysis complete: {job_id} - Prediction: {result['prediction']}")
+            logger.info(f"Analysis complete: {job_id} - Prediction: {result['prediction']} (confidence: {confidence:.2%})")
             
             return jsonify(result), 200
             
