@@ -142,7 +142,7 @@ USE_GPU = True
 
 - **Course**: CPSC 589
 - **Student**: Vishnu Priyan Bhaskar (824838833)
-- **Advisor**: Prof. Kenneth Kung
+- **Advisor**: Prof. Paul Salvador
 - **Institution**: CSUF Computer Science
 
 ---

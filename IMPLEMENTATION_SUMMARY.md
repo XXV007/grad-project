@@ -390,7 +390,7 @@ The system is now ready to proceed to the **experimental phase**, where dataset-
 **Student:** Vishnu Priyan Bhaskar (824838833)  
 **Course:** CPSC 589 - Graduate Project  
 **Institution:** California State University, Fullerton  
-**Advisor:** Prof. Kenneth Kung  
+**Advisor:** Prof. Paul Salvador  
 **Date:** January 28, 2026
 
 **Status:** ✅ **Implementation Complete** | 🔄 **Training Phase Ready**

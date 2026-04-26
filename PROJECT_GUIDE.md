@@ -4,7 +4,7 @@
 - **Course**: CPSC 589 - Graduate Project
 - **Institution**: California State University Fullerton
 - **Student**: Vishnu Priyan Bhaskar (ID: 824838833)
-- **Advisor**: Prof. Kenneth Kung
+- **Advisor**: Prof. Paul Salvador
 - **Project Title**: Multimodal and Robust Deepfake Detection System
 
 ## 📋 Overview
@@ -307,7 +307,7 @@ python app.py
 **Student**: Vishnu Priyan Bhaskar  
 **Email**: vishnumax03@csu.fullerton.edu  
 **Course**: CPSC 589  
-**Advisor**: Prof. Kenneth Kung  
+**Advisor**: Prof. Paul Salvador  
 **Institution**: California State University Fullerton  
 **Department**: Computer Science
 

@@ -4,7 +4,7 @@
 **CPSC 589 - Graduate Project**  
 **California State University, Fullerton**  
 **Student:** Vishnu Priyan Bhaskar (ID: 824838833)  
-**Advisor:** Prof. Kenneth Kung  
+**Advisor:** Prof. Paul Salvador  
 **Date:** January 28, 2026
 
 ---
@@ -736,7 +736,7 @@ python app.py
 **Student ID:** 824838833  
 **Course:** CPSC 589 - Graduate Project  
 **Institution:** California State University, Fullerton  
-**Advisor:** Prof. Kenneth Kung
+**Advisor:** Prof. Paul Salvador
 
 **Project Repository:** `c:\Users\vishn\OneDrive\Desktop\grad project\`
 

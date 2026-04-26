@@ -3,7 +3,7 @@
 **CPSC 589 - Graduate Project**  
 **California State University Fullerton**  
 **Student:** Vishnu Priyan Bhaskar (824838833)  
-**Advisor:** Prof. Kenneth Kung
+**Advisor:** Prof. Paul Salvador
 
 [![Status](https://img.shields.io/badge/Status-Implementation%20Complete-brightgreen)]()
 [![Training](https://img.shields.io/badge/Training-In%20Progress-yellow)]()
@@ -269,6 +269,6 @@ Student ID: 824838833
 
 ## Acknowledgments
 
-- Prof. Kenneth Kung - Faculty Advisor
+- Prof. Paul Salvador - Faculty Advisor
 - CSUF Department of Computer Science
 - Dataset providers (FaceForensics++, DFDC, Celeb-DF)
