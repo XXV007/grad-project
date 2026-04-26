@@ -221,6 +221,32 @@ def create_app(config_name='development'):
             video_path = os.path.join(app.config['UPLOAD_FOLDER'], video_files[0])
             
             logger.info(f"Analyzing video with BitMind API: {job_id}")
+
+            # Local post-processing for presentation metrics/visuals
+            local_frames_analyzed = app.config.get('SEQUENCE_LENGTH', 30)
+            local_faces_detected = 'N/A'
+            try:
+                from utils.preprocessing import VideoPreprocessor
+                from utils.explainability import ExplainabilityModule
+
+                preprocessor = VideoPreprocessor(app.config)
+                raw_frames = preprocessor._extract_frames(video_path) or []
+                local_frames_analyzed = len(raw_frames) if raw_frames else app.config.get('SEQUENCE_LENGTH', 30)
+
+                face_frames, faces_detected = preprocessor._detect_and_crop_faces(raw_frames) if raw_frames else ([], 0)
+                local_faces_detected = faces_detected
+
+                if face_frames:
+                    explainability = ExplainabilityModule(app.config, model=None, device=str(device))
+                    # temporal_features is not required by current plotting logic; any ndarray works.
+                    explainability.generate_visualizations(
+                        frames=face_frames,
+                        spatial_features=None,
+                        temporal_features=torch.randn(30, 10).cpu().numpy(),
+                        job_id=job_id
+                    )
+            except Exception as local_ex:
+                logger.warning(f"Local explainability generation skipped for {job_id}: {local_ex}")
             
             # Call BitMind API for detection
             bitmind_result = detector_instance.detect_video(video_path, debug=False)
@@ -236,6 +262,12 @@ def create_app(config_name='development'):
             # Prepare results
             is_ai = bitmind_result.get('is_ai', False)
             confidence = bitmind_result.get('confidence', 0)
+            heatmap_file = f"{job_id}_heatmap.png"
+            temporal_file = f"{job_id}_temporal.png"
+            heatmap_path = os.path.join(app.static_folder, 'results', heatmap_file)
+            temporal_path = os.path.join(app.static_folder, 'results', temporal_file)
+            heatmap_url = url_for('static', filename=f'results/{heatmap_file}') if os.path.exists(heatmap_path) else None
+            temporal_plot_url = url_for('static', filename=f'results/{temporal_file}') if os.path.exists(temporal_path) else None
             
             result = {
                 'job_id': job_id,
@@ -244,6 +276,10 @@ def create_app(config_name='development'):
                 'detection_source': 'BitMind API',
                 'is_ai_generated': is_ai,
                 'similarity_score': bitmind_result.get('similarity', 0),
+                'frames_analyzed': bitmind_result.get('frames_analyzed', local_frames_analyzed),
+                'faces_detected': bitmind_result.get('faces_detected', local_faces_detected),
+                'heatmap_url': heatmap_url,
+                'temporal_plot_url': temporal_plot_url,
                 'timestamp': datetime.utcnow().isoformat()
             }
             

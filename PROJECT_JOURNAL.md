@@ -158,6 +158,34 @@ Alternative fusion variants (projection/addition or attention weighting) are als
 - Fusion is more robust under domain shifts where one modality can degrade (e.g., compression affecting spatial detail).
 - The highest ROC-AUC (0.97) indicates better overall class separability and threshold stability.
 
+### Technologies Used in This Project
+
+- Programming Language: Python 3.13
+- Deep Learning: PyTorch, TorchVision, timm
+- Computer Vision: OpenCV, MediaPipe
+- Data/Scientific Stack: NumPy, Pandas, scikit-learn, SciPy
+- Visualization: Matplotlib, Seaborn
+- Web Framework: Flask (with Jinja2 templates)
+- Frontend: HTML5, CSS3, JavaScript, Bootstrap 5
+- Deployment Runtime: Local Flask server on Windows (virtual environment)
+
+### APIs and Services Used
+
+- BitMind Detection API
+	- Purpose: Primary deepfake classification in the current web inference pipeline
+	- Usage in project: Called from backend during `/analyze/<job_id>`
+
+- Flask Application API Endpoints
+	- `POST /upload`: Upload a video file
+	- `GET /analyze/<job_id>`: Run detection for an uploaded video
+	- `GET /results/<job_id>`: Render results page
+	- `GET /api/results/<job_id>`: Return result JSON
+	- `GET /health`: Health and detector readiness check
+
+- MediaPipe Face Detection API (library API)
+	- Purpose: Face detection during local preprocessing and explainability preparation
+	- Fallback: OpenCV Haar Cascade when MediaPipe is unavailable
+
 ---
 
 ## Current Status

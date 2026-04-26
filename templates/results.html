@@ -99,14 +99,26 @@
                                 <div class="visualization-card">
                                     <h5>Spatial Attention Heatmap</h5>
                                     <p class="text-muted small">Regions influencing the detection decision</p>
+                                    {% if result.heatmap_url %}
                                     <img src="{{ result.heatmap_url }}" alt="Heatmap" class="img-fluid rounded">
+                                    {% else %}
+                                    <div class="alert alert-secondary mb-0" role="alert">
+                                        Heatmap visualization is not available for this run.
+                                    </div>
+                                    {% endif %}
                                 </div>
                             </div>
                             <div class="col-md-6 mb-4">
                                 <div class="visualization-card">
                                     <h5>Temporal Analysis</h5>
                                     <p class="text-muted small">Frame-by-frame anomaly detection over time</p>
+                                    {% if result.temporal_plot_url %}
                                     <img src="{{ result.temporal_plot_url }}" alt="Temporal Plot" class="img-fluid rounded">
+                                    {% else %}
+                                    <div class="alert alert-secondary mb-0" role="alert">
+                                        Temporal visualization is not available for this run.
+                                    </div>
+                                    {% endif %}
                                 </div>
                             </div>
                         </div>
